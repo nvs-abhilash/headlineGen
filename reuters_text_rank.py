@@ -2,6 +2,7 @@ import nltk
 import sys
 from nltk.corpus import reuters
 from math import log10
+from reuters_tf_idf import tfIdf
 
 from graphs import Graph
 
@@ -66,22 +67,47 @@ def syntactic_filter (tag_dict):
 
 # fract = content_fraction (nltk.corpus.reuters.words())
 
+# def printTraversal (sorted_positions, offset_dict, text_rank_dict, tid_word_dict):
+    
+#     listOfOnes = offset_dict[tid_word_dict[1]]
+
+#     listOfOnes = sorted(listOfOnes)
+    
+#     for x in listOfOnes:
+        
+#         prev = x
+#         toFind = 2
+#         while toFind <= 15:
+#             list2 = offset_dict[tid_word_dict[toFind]]
+            
+#             minDis = 15
+#             for num in list2:
+#                 if  
+#         for 
+
 def main(argv):
 
     fName = './reuters/training/' + str(argv)
     f = open(fName, 'r')
     raw_text = f.read()
+
     words = nltk.word_tokenize(raw_text)
+    for i in range(len(words)):
+        words[i] = words[i].lower()
     text = words
 
-    # words = ['Hello', 'world', 'I', 'am', 'a', 'perfect', 'dog', 'who', 'got', 'killed']
     tagged_words = nltk.pos_tag(words)
 
     tags = set([tag for (word, tag) in tagged_words])
-
+    words_dict = {}
     tag_dict = {}
 
     for (word, tag) in tagged_words:
+        if word in words_dict.keys():
+            words_dict[word.lower()].append(tag)
+        else:
+            words_dict[word.lower()] = [tag]
+        
         if tag in tag_dict.keys():
             tag_dict[tag].append(word)
         else:
@@ -163,7 +189,8 @@ def main(argv):
         
     print ("\n\nText Rank of the document:")
     for (word, val) in sorted_x[:15]:
-        print ('{:>15}\t\t{:>15}'.format(word, str(val)))
+        print ('{:>15}\t\t{:>15}'.format(word, str(val)), end='\t\t')
+        print (words_dict[word.lower()])
 
     set1 = set([w.lower() for (w, val) in sorted_x[:15]])
 
@@ -178,6 +205,7 @@ def main(argv):
     fdist = nltk.FreqDist([w for w in news_text if not w.isupper()])
 
     print("\n\n\nTf Scores of the document:")
+    
     # Calculating tf
     for key, value in fdist.items():
         value = 1 + log10(value)
@@ -188,7 +216,9 @@ def main(argv):
 
     for (word, val) in sorted_x[:15]:
         if (val > 1):
-            print ('{:>15}\t\t{:>15}'.format(word, str(val)))
+            print ('{:>15}\t\t{:>15}'.format(word, str(val)), end='\t\t')
+            print (words_dict[word.lower()])
+
     set2 = set([w.lower() for (w, val) in sorted_x[:15] if val > 1])
 
 
@@ -197,22 +227,121 @@ def main(argv):
     print ("Size of the set: ", end=' ')
     print (len(set1.intersection(set2)))
 
-    print ("\n\nHeading = ", end = ' ')
-    print (headings)
-
-    headings = set(headings)
-    print ("\n\nIntersection of top 15 TextRank with headings: ")
-    print (headings.intersection(set1))
+    set3 , sorted_tf_idf = tfIdf (raw_text, words_dict)
+    print ("\n\nIntersection of the top 15 of both: ")
+    print (set1.intersection(set3))
     print ("Size of the set: ", end=' ')
-    print ('{0:.2f}'.format(len(headings.intersection(set1)) / len(headings) * 100), end='')
-    print ("%")
+    print (len(set1.intersection(set3)))
 
-    print ("\n\nIntersection of top 15 Tf-score with headings: ")
-    print (headings.intersection(set2))
-    print ("Size of the set: ", end=' ')
-    print ('{0:.2f}'.format(len(headings.intersection(set2)) / len(headings) * 100), end='')
-    print ("%")
+    # Finding proximity of the set
+    # set1, set2, set3
 
+
+    """ For TEXT RANK """
+    offset_dict = {}
+    for words1 in set1:
+        offset_dict[words1] = doc.offsets(words1)
+    
+    sorted_text_rank = sorted(text_rank_dict.items(), key=operator.itemgetter(1), reverse=True)
+
+    i = 1
+    text_rank_dict = {}
+    for (word, rank) in sorted_text_rank[:15]:
+        text_rank_dict[word] = (rank, i)
+        i = i + 1
+
+    positions_list = []
+    for word in offset_dict.keys():
+        offsets = offset_dict[word]
+        for ofs in offsets:
+            positions_list.append((ofs, text_rank_dict[word][1]))
+    
+    sorted_positions = sorted(positions_list, key=lambda pos: pos[0])
+    # print (text_rank_dict)
+    # print (positions_list)
+
+    print ("\n\nSorted positions: Text Rank")
+    for (pos, tid) in sorted_positions:
+        print ("{:>15}\t\t{:>15}".format(pos, tid))
+    
+    tid_word_dict = {}
+    for word in text_rank_dict.keys():
+        tid = text_rank_dict[word][1]
+        tid_word_dict[tid] = word
+
+    
+    """ For TF """
+    offset_dict = {}
+    for words2 in set2:
+        offset_dict[words2] = doc.offsets(words2)
+    
+    sorted_tf = sorted(fdist.items(), key=operator.itemgetter(1), reverse=True)
+
+    i = 1
+    tf_dict = {}
+    for (word, tf) in sorted_tf[:15]:
+        tf_dict[word] = (tf, i)
+        i = i + 1
+
+    positions_list = []
+    for word in offset_dict.keys():
+        offsets = offset_dict[word]
+        for ofs in offsets:
+            positions_list.append((ofs, tf_dict[word][1]))
+    
+    sorted_positions = sorted(positions_list, key=lambda pos: pos[0])
+    # print (text_rank_dict)
+    # print (positions_list)
+
+    print ("\n\nSorted positions: TF")
+    for (pos, tid) in sorted_positions:
+        print ("{:>15}\t\t{:>15}".format(pos, tid))
+    
+    tid_word_dict = {}
+    for word in tf_dict.keys():
+        tid = tf_dict[word][1]
+        tid_word_dict[tid] = word
+
+
+    """ For TF-IDF """
+    offset_dict = {}
+    for words3 in set3:
+        offset_dict[words3] = doc.offsets(words3)
+    
+    
+    i = 1
+    tf_idf_dict = {}
+    for (word, tfidf) in sorted_tf_idf[:15]:
+        tf_idf_dict[word] = (tfidf, i)
+        i = i + 1
+
+    positions_list = []
+    for word in offset_dict.keys():
+        offsets = offset_dict[word]
+        for ofs in offsets:
+            positions_list.append((ofs, tf_idf_dict[word][1]))
+    
+    sorted_positions = sorted(positions_list, key=lambda pos: pos[0])
+    # print (text_rank_dict)
+    # print (positions_list)
+
+    print ("\n\nSorted positions: TF-IDF")
+    for (pos, tid) in sorted_positions:
+        print ("{:>15}\t\t{:>15}".format(pos, tid))
+    
+    tid_word_dict = {}
+    for word in tf_idf_dict.keys():
+        tid = tf_idf_dict[word][1]
+        tid_word_dict[tid] = word
+
+    # printTraversal(sorted_positions, offset_dict, text_rank_dict, tid_word_dict)
+
+
+
+    # for words1 in set1:
+    #     for words2 in set2:
+    #         if word1 != word2:
+    #             doc.off
 if __name__ == "__main__":
     if (len(sys.argv) == 2):
         main(sys.argv[1])
