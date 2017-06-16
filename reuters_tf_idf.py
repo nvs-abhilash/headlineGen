@@ -41,19 +41,7 @@ def tfIdf (string, words_dict):
     import operator
     sorted_x = sorted(tfIdf_dict.items(), key=operator.itemgetter(1), reverse=True)
 
-
-    if len(sorted_x) > 15:
-        maxVal = 15
-    else:
-        maxVal = len(sorted_x)
-    
-    print ("\n\nTf-Idf scores of the document: ")
-    for (word, val) in sorted_x[:maxVal]:
-        print ('{:>15}\t\t{:>15}'.format(word, str(val)), end='\t\t')
-        print (words_dict[word.lower()])
-
-    set3 = set([w for (w, val) in sorted_x[:maxVal]])
-    return (set3, sorted_x[:maxVal])
+    return sorted_x
 
 def main():
     tfIdf ('hello world I am NVS Abhilash')
