@@ -3,6 +3,7 @@ import sys
 from nltk.corpus import reuters
 from math import log10
 from reuters_tf_idf import tfIdf
+from nltk.stem.porter import *
 
 from graphs import Graph
 from textRank import textRank
@@ -40,7 +41,7 @@ def printTraversal (sorted_positions, offset_dict, text_rank_dict, tid_word_dict
         out_list.append([x])
 
         toFind = 2
-        while toFind <= 15:
+        while toFind <= len(text_rank_dict):
             list2 = offset_dict[tid_word_dict[toFind]]
             
             minDis = maxVal
@@ -180,9 +181,21 @@ def main(argv):
     words = nltk.Text (tokenized_words)
     doc = nltk.ConcordanceIndex(words)
     
+    stemmer = PorterStemmer()
+
     # Call text Rank
     sorted_text_rank = textRank(tokenized_words, tag_word_dict)
-    set1 = set([w.lower() for (w, val) in sorted_text_rank[:15]])  
+    set1 = set([w.lower() for (w, val) in sorted_text_rank[:15]])
+    removeList = []
+    for w in set1:
+        if stemmer.stem(w) != w and stemmer.stem(w) in set1:
+            removeList.append(w)
+    
+    for w in removeList:
+        set1.remove(w)
+    
+    sorted_text_rank = [(w, val) for (w, val) in sorted_text_rank[:15] if w not in removeList]
+  
     offset_dict_text_rank = {}
     for words1 in set1:
         offset_dict_text_rank[words1] = doc.offsets(words1)
@@ -190,13 +203,35 @@ def main(argv):
     # Call tf
     sorted_tfValues = tf(tokenized_words, word_tag_dict)
     set2 = set([w.lower() for (w, val) in sorted_tfValues[:15]])  
+    removeList = []
+    for w in set2:
+        if stemmer.stem(w) != w and stemmer.stem(w) in set2:
+            if (w == 'june'):
+                print (w)
+            removeList.append(w)
+    
+    for w in removeList:
+        set2.remove(w)
+    
+    sorted_tfValues = [(w, val) for (w, val) in sorted_tfValues[:15] if w not in removeList]
+
     offset_dict_tf = {}
     for words2 in set2:
         offset_dict_tf[words2] = doc.offsets(words2)
     
     # Call tf-idf
     sorted_tf_idf = tfIdf (raw_text, word_tag_dict)
-    set3 = set([w for (w, val) in sorted_tf_idf[:15]])  
+    set3 = set([w for (w, val) in sorted_tf_idf[:15]])
+    removeList = []
+    for w in set3:
+        if stemmer.stem(w) != w and stemmer.stem(w) in set3:
+            removeList.append(w)
+    
+    for w in removeList:
+        set3.remove(w)
+    
+    sorted_tf_idf = [(w, val) for (w, val) in sorted_tf_idf[:15] if w not in removeList]
+  
     offset_dict_tf_idf = {}
     for words3 in set3:
         offset_dict_tf_idf[words3] = doc.offsets(words3)
