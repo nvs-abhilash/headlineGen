@@ -61,14 +61,14 @@ def printTraversal (sorted_positions, offset_dict, text_rank_dict, tid_word_dict
 def minDist (list1, list2):
     
     if len (list1) > 0 and len (list2) > 0:
-        minVal = abs(list1[0] - list2[0])
+        minVal = list1[0] - list2[0]
     else:
         minVal = 100000
     
     for x in list1:
         for y in list2:
-            if abs(x - y) < minVal:
-                minVal = abs(x - y)
+            if abs(x - y) < abs(minVal):
+                minVal = x - y
     return minVal
 
 def printMatrix(offset_dict):
@@ -81,16 +81,16 @@ def printMatrix(offset_dict):
             else:
                 wordsList[w][q] = minDist (offset_dict[w], offset_dict[q])
     
-    print ('\n\n', end='\t')
+    print ('\n\n', end='\t\t\t\t\t\t\t  ')
     
     for w in wordsList.keys():
-        print ('{:>10}'.format(w), end=' ')
+        print ('{:>15}'.format(w), end=' ')
     print ('\n')
 
     for w in wordsList.keys():
-        print ('{:>10}'.format(w), end = ' ')
+        print ('{:>15}'.format(w), end = ' ')
         for q in wordsList[w].keys():
-            print ('{:>10}'.format(wordsList[w][q]), end = ' ')
+            print ('{:>15}'.format(wordsList[w][q]), end = ' ')
         print()
         
 def printResult (sorted_table, word_tag_dict, offset_dict):
@@ -124,11 +124,14 @@ def printTable (sorted_table, offset_dict):
         tid = score_dict[word][1]
         tid_word_dict[tid] = word
 
-    print ("\n\nSorted positions: TF")
+    print ("\n\nSorted positions: TF\n")
+    print ("{:>15} {:>15} {:>15}".format("Pos Id", "Term Id", "Term"), end='\n\n')
+    
     for (pos, tid) in sorted_positions:
-        print ("{:>15}\t\t{:>15}\t\t{:>15}".format(pos, tid, tid_word_dict[tid]))
+        print ("{:>15} {:>15} {:>15}".format(pos, tid, tid_word_dict[tid]))
     
     
+    print ('\n\n')
     out_list = printTraversal(sorted_positions, offset_dict, score_dict, tid_word_dict)
     
     intersectVal = set(out_list[0])
@@ -207,7 +210,7 @@ def main(argv):
     # printTable (sorted_text_rank, offset_dict_text_rank)
     # printMatrix (offset_dict_text_rank)
 
-    print("\n\nTf Scores of the document:")
+    print("\n\nTf Scores of the document:\n")
     printResult (sorted_tfValues, word_tag_dict, offset_dict_tf)
     printTable (sorted_tfValues, offset_dict_tf)
     printMatrix (offset_dict_tf)
