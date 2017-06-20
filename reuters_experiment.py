@@ -4,11 +4,11 @@ from nltk.corpus import reuters
 from math import log10
 from reuters_tf_idf import tfIdf
 from nltk.stem.porter import *
+from nltk.tokenize import sent_tokenize
 
 from graphs import Graph
 from textRank import textRank
 from tf import tf
-
 
 def content_fraction (text):
     stopwords = nltk.corpus.stopwords.tokenized_words('english')
@@ -18,6 +18,20 @@ def content_fraction (text):
 
 
 # fract = content_fraction (nltk.corpus.reuters.tokenized_words())
+
+def topSentences (raw_text, sorted_table, matches):
+    print ("\n\nTop sentences:")
+    
+    sent_tokenized_list = sent_tokenize(raw_text)
+    
+    for sentence in sent_tokenized_list:
+        count = 0
+        for (word, val) in sorted_table:
+            if word in sentence.lower():
+                count += 1
+        if count > matches:
+            print (sentence)
+    print ('\n\n')
 
 def printTraversal (sorted_positions, offset_dict, text_rank_dict, tid_word_dict):
     
@@ -149,7 +163,7 @@ def printTable (sorted_table, offset_dict):
 
     print ('\n')
 
-def main(argv):
+def main(argv, matches = 3):
 
     fName = './reuters/training/' + str(argv)
     f = open(fName, 'r')
@@ -249,10 +263,12 @@ def main(argv):
     # printMatrix (offset_dict_text_rank)
 
     print("\n\nTf Scores of the document:\n")
-    printResult (sorted_tfValues, word_tag_dict, offset_dict_tf)
-    printTable (sorted_tfValues, offset_dict_tf)
-    printMatrix (offset_dict_tf)
-
+    printResult     (sorted_tfValues, word_tag_dict, offset_dict_tf)
+    printTable      (sorted_tfValues, offset_dict_tf)
+    printMatrix     (offset_dict_tf)
+    
+    topSentences    (raw_text, sorted_tfValues, matches)
+    
     # print ("\n\nTf-Idf scores of the document: ")
     # printResult (sorted_tf_idf, word_tag_dict, offset_dict_tf_idf)
     # printTable (sorted_tf_idf, offset_dict_tf_idf)
@@ -260,5 +276,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    if (len(sys.argv) == 2):
+    if (len (sys.argv) == 2):
         main(sys.argv[1])
+    if (len(sys.argv) == 3):
+        main(sys.argv[1], int(sys.argv[2]))
