@@ -82,17 +82,21 @@ def printMatrix(offset_dict):
             else:
                 wordsList[w][q] = minDist (offset_dict[w], offset_dict[q])
     
-    print ('\n\n', end='\t\t\t\t\t\t\t  ')
+    print ('\n\n', end='\t\t\t\t')
     
     for w in wordsList.keys():
         print ('{:>15}'.format(w), end=' ')
     print ('\n')
 
+    arrived = []
     for w in wordsList.keys():
         print ('{:>15}'.format(w), end = ' ')
+        arrived.append(w)
+
         for q in wordsList[w].keys():
-            print ('{:>15}'.format(wordsList[w][q]), end = ' ')
-        print()
+            if q in arrived:
+                print ('{:>15}'.format(wordsList[w][q]), end = ' ')
+        print ()
         
 def printResult (sorted_table, word_tag_dict, offset_dict):
     for (word, val) in sorted_table[:15]:
@@ -130,7 +134,6 @@ def printTable (sorted_table, offset_dict):
     
     for (pos, tid) in sorted_positions:
         print ("{:>15} {:>15} {:>15}".format(pos, tid, tid_word_dict[tid]))
-    
     
     print ('\n\n')
     out_list = printTraversal(sorted_positions, offset_dict, score_dict, tid_word_dict)
